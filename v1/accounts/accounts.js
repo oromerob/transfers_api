@@ -1,9 +1,16 @@
-var accountsDb = require('./accountsDb');
+const common = require('../common');
+const accountsDb = require('./accountsDb');
+
+const FNAME = 'v1.accounts.accounts.';
 
 module.exports = {
-    getOne: accountsDb.getOne,
+    getOne: (id, callback) => {
+        common.log(FNAME + 'getOne');
+        accountsDb.getOne(id, callback);
+    },
     updateAmount: (id, amount, callback) => {
-        this.getOne(id, (err, account) => {
+        common.log(FNAME + 'updateAmount');
+        module.exports.getOne(id, (err, account) => {
             if (err) return callback(err);
 
             let new_amount = account.amount + amount;

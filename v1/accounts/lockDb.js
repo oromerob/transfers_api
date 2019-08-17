@@ -5,38 +5,42 @@ const dbName = 'TransferAPI';
 const client = new MongoClient(url);
 
 module.exports = {
-    lock: function (ids, callback) {
-        client.connect(function (err, client) {
+    lock: (ids, callback) => {
+        client.connect((err, client) => {
             if (err) return callback(err);
 
             const db = client.db(dbName);
-            db.collection("lock").insertMany(ids, function (err) {
+
+            let items = ids.map((item) => {
+                return {_id: item};
+            });
+            db.collection("lock").insertMany(items, (err) => {
                 if (err) return callback(err);
-                client.close();
+                // client.close();
                 callback()
             })
         })
     },
-    unlock: function (ids, callback) {
-        client.connect(function (err, client) {
+    unlock: (ids, callback) => {
+        client.connect((err, client) => {
             if (err) return callback(err);
 
             const db = client.db(dbName);
-            db.collection("lock").deleteMany(ids, function (err) {
+            db.collection("lock").deleteMany({_id: {$in: ids}}, (err) => {
                 if (err) return callback(err);
-                client.close();
+                // client.close();
                 callback()
             })
         })
     },
-    check: function (ids, callback) {
-        client.connect(function (err, client) {
+    check: (ids, callback) => {
+        client.connect((err, client) => {
             if (err) return callback(err);
 
             const db = client.db(dbName);
-            db.collection("lock").find(ids).toArray(function (err, items) {
+            db.collection("lock").find({_id: {$in: ids}}).toArray((err, items) => {
                 if (err) return callback(err);
-                client.close();
+                // client.close();
                 if (items.length > 0) return callback(null, false);
                 callback(null, true)
             })

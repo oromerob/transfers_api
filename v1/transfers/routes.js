@@ -5,22 +5,22 @@ var transfers = require('./transfers');
 const router = new Router();
 
 // // list transfers
-// router.get("", function (req, res, next) {
+// router.get("", (req, res, next) => {
 //     res.send({status: 'success', path: '/transfers'});
 //     return next();
 // });
 //
 // // return a transfer
-// router.get("/:id", function (req, res, next) {
+// router.get("/:id", (req, res, next) => {
 //     res.send({status: 'success', path: '/transfers/' + req.params.id});
 //     return next();
 // });
 
 // create a transfer
-router.put("", function (req, res, next) {
+router.put("", (req, res, next) => {
     transfers.new(req.body.form, (err) => {
         if (err) {
-            res.send({status: 'error', err: err});
+            res.send(err);
             return next();
         }
         res.send({status: 'success'});
