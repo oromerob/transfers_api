@@ -1,6 +1,6 @@
 var ObjectID = require('mongodb').ObjectID;
 
-const common = require('../common');
+const common = require('../../common');
 const lock = require('../accounts/lock');
 const accounts = require('../accounts/accounts');
 const transfersDb = require('./transfersDb');

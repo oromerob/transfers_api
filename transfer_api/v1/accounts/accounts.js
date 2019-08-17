@@ -1,4 +1,4 @@
-const common = require('../common');
+const common = require('../../common');
 const accountsDb = require('./accountsDb');
 
 const FNAME = 'v1.accounts.accounts.';

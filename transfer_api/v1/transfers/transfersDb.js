@@ -1,8 +1,9 @@
 const MongoClient = require('mongodb').MongoClient;
 
-const url = 'mongodb://localhost:27019';
+const config = require('../../config');
+
 const dbName = 'TransferAPI';
-const client = new MongoClient(url);
+const client = new MongoClient(config.mongoUrl);
 
 module.exports = {
     getOne: (id, callback) => {
@@ -13,7 +14,6 @@ module.exports = {
             const db = client.db(dbName);
             db.collection("transfers").findOne({ _id: id }, (err, item) => {
                 if (err) return callback(err);
-                // client.close();
                 callback(null, item)
             })
         })
@@ -26,7 +26,6 @@ module.exports = {
             const db = client.db(dbName);
             db.collection("transfers").find({}).limit(10).toArray((err, docs) => {
                 if (err) return callback(err);
-                // client.close();
                 callback(null, docs)
             })
         })
@@ -39,7 +38,6 @@ module.exports = {
             const db = client.db(dbName);
             db.collection("transfers").insertOne(transfer, (err, result) => {
                 if (err) return callback(err);
-                // client.close();
                 callback();
             })
         })
@@ -51,7 +49,6 @@ module.exports = {
             const db = client.db(dbName);
             db.collection("transfers").updateOne({_id: id}, {$set: status}, (err, result) => {
                 if (err) return callback(err);
-                // client.close();
                 callback();
             })
         })

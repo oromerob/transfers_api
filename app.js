@@ -2,7 +2,7 @@ var Router = require('restify-router').Router;
 var restify = require('restify');
 
 const router = new Router();
-router.add("/v1", require("./v1/routes"));
+router.add("/v1", require("./transfer_api/v1/routes"));
 
 let server = restify.createServer();
 
