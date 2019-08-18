@@ -1,4 +1,4 @@
-const common = require('../../common');
+const common = require('../common');
 const lockDb = require('./lockDb');
 
 const FNAME = 'v1.accounts.lock.';

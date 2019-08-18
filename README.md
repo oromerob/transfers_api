@@ -1,14 +1,7 @@
 # Transfers API
 
-## Non working exercise!!
 
-To start the database:
+To start the app:
 ```bash
 docker-compose up -d
-```
-
-To run the app:
-
-```bash
-node app.js
 ```

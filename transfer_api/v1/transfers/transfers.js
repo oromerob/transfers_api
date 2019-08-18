@@ -1,9 +1,10 @@
 var ObjectID = require('mongodb').ObjectID;
 
-const common = require('../../common');
+const common = require('../common');
 const lock = require('../accounts/lock');
 const accounts = require('../accounts/accounts');
 const transfersDb = require('./transfersDb');
+const Transfer = require('./Transfer');
 
 const FNAME = 'v1.transfers.transfers.';
 
@@ -21,15 +22,10 @@ module.exports = {
     new: (form, callback) => {
         common.log(FNAME + 'new');
 
-        const transfer = {
-            _id: new ObjectID(),
-            from: form.from,
-            to: form.to,
-            amount: form.amount,
-            status: 'pending'
-        };
+        let transfer = new Transfer(form);
+        transfer.log.push('0. insert new transfer to the database');
 
-        transfersDb.new(transfer, (err) => {
+        transfersDb.save(transfer, (err) => {
             if (err) return module.exports._setErrored(transfer, err, false, callback);
 
             module.exports._checkLock(transfer, callback);
@@ -38,6 +34,7 @@ module.exports = {
     //1. check that the accounts are available
     _checkLock: (transfer, callback) => {
         common.log(FNAME + '_checkLock');
+        transfer.log.push('1. check that the accounts are available');
 
         lock.check([transfer.from, transfer.to], (err, cont) => {
             if (err) return module.exports._setErrored(transfer, err, false, callback);
@@ -49,28 +46,45 @@ module.exports = {
     //2. lock the "from" & "to" accounts
     _lockAccounts: (transfer, callback) => {
         common.log(FNAME + '_lockAccounts');
+        transfer.log.push('2. lock the "from" & "to" accounts');
 
         lock.lock([transfer.from, transfer.to], (err) => {
             if (err) return module.exports._setErrored(transfer, err, true, callback);
 
-            module.exports._checkAccount(transfer, callback);
+            module.exports._checkFromAccount(transfer, callback);
         })
     },
-    //3. check that it has enough money
-    _checkAccount: (transfer, callback) => {
-        common.log(FNAME + '_checkAccount');
+    //3. check from account
+    _checkFromAccount: (transfer, callback) => {
+        common.log(FNAME + '_checkFromAccount');
+        transfer.log.push('3. check that it has enough money');
 
         accounts.getOne(transfer.from, (err, from_account) => {
             if (err) return module.exports._setErrored(transfer, err, true, callback);
             if (from_account === null) return module.exports._setUnsuccessful(transfer, 'Account from does not exist!', callback);
             if (from_account.amount < transfer.amount) return module.exports._setUnsuccessful(transfer, 'Account from does not have enough money!', callback);
 
+            transfer.initial.push(from_account);
+            module.exports._checkToAccount(transfer, callback);
+        })
+    },
+    //4. check to account
+    _checkToAccount: (transfer, callback) => {
+        common.log(FNAME + '_checkToAccount');
+        transfer.log.push('4. check to account');
+
+        accounts.getOne(transfer.to, (err, to_account) => {
+            if (err) return module.exports._setErrored(transfer, err, true, callback);
+            if (!to_account) return module.exports._setUnsuccessful(transfer, 'Account "to" does not exist!', callback);
+
+            transfer.initial.push(to_account);
             module.exports._updateFromAccount(transfer, callback);
         })
     },
-    //4. substract the transfer amount from the "from" account
+    //5. substract the transfer amount from the "from" account
     _updateFromAccount: (transfer, callback) => {
         common.log(FNAME + '_updateFromAccount');
+        transfer.log.push('5. substract the transfer amount from the "from" account');
 
         accounts.updateAmount(transfer.from, -transfer.amount, (err) => {
             if (err) return module.exports._setErrored(transfer, err, true, callback);
@@ -78,9 +92,10 @@ module.exports = {
             module.exports._updateToAccount(transfer, callback);
         })
     },
-    //5. add the transfer amount to the "to" account
+    //6. add the transfer amount to the "to" account
     _updateToAccount: (transfer, callback) => {
         common.log(FNAME + '_updateToAccount');
+        transfer.log.push('6. add the transfer amount to the "to" account');
 
         accounts.updateAmount(transfer.to, transfer.amount, (err) => {
             if (err) return module.exports._setErrored(transfer, err, true, callback);
@@ -88,46 +103,47 @@ module.exports = {
             module.exports._setSuccessful(transfer, callback);
         })
     },
-    //6. set transfer as successful && unlock the "from" & "to" accounts
+    //7. set transfer as successful && unlock the "from" & "to" accounts
     _setSuccessful: (transfer, callback) => {
         common.log(FNAME + '_setSuccessful');
+        transfer.log.push('7. set transfer as successful && unlock the "from" & "to" accounts');
+        transfer.status = 'successful';
 
-        transfersDb.updateStatus(transfer._id, {status: 'successful'}, (err) => {
+        transfersDb.save(transfer, (err) => {
             if (err) return callback(err);
 
-            lock.unlock([transfer.from, transfer.to], callback);
+            lock.unlock([transfer.from, transfer.to], () => {
+                callback(null, transfer);
+            });
         })
     },
     _setErrored: (transfer, err, unlock, callback) => {
         common.log(FNAME + '_setErrored');
+        transfer.log.push('ERROR! set transfer as errored && unlock if needed the "from" & "to" accounts');
+        transfer.status = 'errored';
+        transfer.err = err;
+        transfer.msg = 'Please contact us. An error happened, your transaction couldn\'t be processed';
 
-        const status = {
-            status: 'errored',
-            err: err
-        };
-
-        transfersDb.updateStatus(transfer._id, status, (err) => {
+        transfersDb.save(transfer, (err) => {
             if (err) return callback(err);
-            if (!unlock) return callback();
+            if (!unlock) return callback(null, transfer);
 
             lock.unlock([transfer.from, transfer.to], () => {
-                callback({status: 'error', msg: 'Please contact us. An error happened, your transaction couldn\'t be processed'});
+                callback(null, transfer);
             });
         })
     },
     _setUnsuccessful: (transfer, desc, callback) => {
         common.log(FNAME + '_setUnsuccessful');
+        transfer.log.push('Unsuccessful! ' + desc);
+        transfer.status = 'unsuccessful';
+        transfer.msg = desc;
 
-        const status = {
-            status: 'unsuccessful',
-            msg: desc
-        };
-
-        transfersDb.updateStatus(transfer._id, status, (err) => {
+        transfersDb.save(transfer, (err) => {
             if (err) return callback(err);
 
             lock.unlock([transfer.from, transfer.to], () => {
-                callback(status);
+                callback(null, transfer);
             });
         })
     }

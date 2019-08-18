@@ -1,6 +1,6 @@
 const MongoClient = require('mongodb').MongoClient;
 
-const config = require('../../config');
+const config = require('../config');
 
 const dbName = 'TransferAPI';
 const client = new MongoClient(config.mongoUrl);
@@ -30,24 +30,12 @@ module.exports = {
             })
         })
     },
-    new: (transfer, callback) => {
-        // add transfer to database
+    save: (transfer, callback) => {
         client.connect((err, client) => {
             if(err) return callback(err);
 
             const db = client.db(dbName);
-            db.collection("transfers").insertOne(transfer, (err, result) => {
-                if (err) return callback(err);
-                callback();
-            })
-        })
-    },
-    updateStatus: (id, status, callback) => {
-        client.connect((err, client) => {
-            if(err) return callback(err);
-
-            const db = client.db(dbName);
-            db.collection("transfers").updateOne({_id: id}, {$set: status}, (err, result) => {
+            db.collection("transfers").replaceOne({_id: transfer._id}, transfer, {upsert: true}, (err, result) => {
                 if (err) return callback(err);
                 callback();
             })

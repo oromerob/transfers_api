@@ -2,8 +2,10 @@
   "name": "transfer_api",
   "version": "1.0.0",
   "dependencies": {
+    "moment": "2.24.0",
     "mongodb": "3.3.0",
     "restify": "8.4.0",
-    "restify-router": "0.5.1"
+    "restify-router": "0.5.1",
+    "restify-swagger-jsdoc": "3.2.2"
   }
 }

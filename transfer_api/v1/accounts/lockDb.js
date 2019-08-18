@@ -1,6 +1,6 @@
 const MongoClient = require('mongodb').MongoClient;
 
-const config = require('../../config');
+const config = require('../config');
 
 const dbName = 'TransferAPI';
 const client = new MongoClient(config.mongoUrl);
