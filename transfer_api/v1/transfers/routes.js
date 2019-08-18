@@ -18,32 +18,42 @@ const router = new Router();
 // });
 
 // create a transfer
+
+/**
+ * @swagger
+ * definitions:
+ *   Transfer:
+ *     required:
+ *       - from
+ *       - to
+ *       - amount
+ *     properties:
+ *       from:
+ *         type: string
+ *         description: phone number (userId)
+ *       to:
+ *         type: string
+ *         description: phone number (userId)
+ *       amount:
+ *         type: number
+ *         format: float
+ *         description: an amount to be transferred
+ */
+
+
 /**
  * @swagger
  * /v1/transfers:
  *   post:
  *     summary: Creates a money transfer in between 2 users.
- *     description: A JSON object containing transfer data
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               form:
- *                 type: object
- *                 properties:
- *                   from:
- *                     type: string
- *                     description: user phone
- *                   to:
- *                     type: string
- *                     description: user phone
- *                   amount:
- *                     type: number
- *                     format: float
- *                     minimum: 0.01
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         name: transfer
+ *         description: A JSON object containing transfer data
+ *         schema:
+ *           $ref: '#/definitions/Transfer'
  *     responses:
  *       200:
  *         description: a transfer object with its logs and final status
@@ -89,7 +99,6 @@ const router = new Router();
  *                 status:
  *                   type: string
  *                   enum: [successful, unsuccessful, errored]
- *
  */
 router.post("", (req, res, next) => {
     common.log(req.body);

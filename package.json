@@ -1,6 +1,6 @@
 {
   "name": "transfer_api",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "dependencies": {
     "moment": "2.24.0",
     "mongodb": "3.3.0",
