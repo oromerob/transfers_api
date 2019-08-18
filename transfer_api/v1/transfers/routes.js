@@ -22,7 +22,7 @@ const router = new Router();
 /**
  * @swagger
  * definitions:
- *   Transfer:
+ *   TransferRequest:
  *     required:
  *       - from
  *       - to
@@ -40,6 +40,54 @@ const router = new Router();
  *         description: an amount to be transferred
  */
 
+/**
+ * @swagger
+ * definitions:
+ *   TransferResponse:
+ *     required:
+ *       - _id
+ *       - from
+ *       - to
+ *       - amount
+ *       - dateCreated
+ *       - status
+ *     properties:
+ *       _id:
+ *         type: string
+ *         format: utf-8
+ *       amount:
+ *         type: number
+ *         format: float
+ *       dateCreated:
+ *         type: string
+ *         example: 2019-08-18T11:37:30Z
+ *       err:
+ *         type: string
+ *         description: Filled with the error for errored transfers
+ *       from:
+ *         type: string
+ *         description: user phone (userId)
+ *         minLength: 9
+ *       to:
+ *         type: string
+ *         description: user phone (userId)
+ *         minLength: 9
+ *       initial:
+ *         type: array
+ *         items:
+ *           type: object
+ *       log:
+ *         type: array
+ *         items:
+ *           type: string
+ *       msg:
+ *         type: string
+ *         description: Filled with the reason for unsuccessful transfers
+ *       status:
+ *         type: string
+ *         enum: [successful, unsuccessful, errored]
+ */
+
 
 /**
  * @swagger
@@ -53,52 +101,14 @@ const router = new Router();
  *         name: transfer
  *         description: A JSON object containing transfer data
  *         schema:
- *           $ref: '#/definitions/Transfer'
+ *           $ref: '#/definitions/TransferRequest'
  *     responses:
  *       200:
  *         description: a transfer object with its logs and final status
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 _id:
- *                   type: string
- *                   format: utf-8
- *                   example: 5d59387af645655f5633838f
- *                 amount:
- *                   type: number
- *                   format: float
- *                   example: 200.00
- *                 dateCreated:
- *                   type: string
- *                   example: 2019-08-18T11:37:30Z
- *                 err:
- *                   type: string
- *                   example: ''
- *                   description: Filled with the error for errored transfers
- *                 from:
- *                   type: string
- *                   description: user phone (userId)
- *                   minLength: 9
- *                 to:
- *                   type: string
- *                   description: user phone (userId)
- *                   minLength: 9
- *                 initial:
- *                   type: array
- *                   items:
- *                     type: object
- *                 log:
- *                   type: array
- *                   items:
- *                     type: string
- *                 msg:
- *                   type: string
- *                   description: Filled with the reason for unsuccessful transfers
- *                 status:
- *                   type: string
- *                   enum: [successful, unsuccessful, errored]
+ *               $ref: '#/definitions/TransferResponse'
  */
 router.post("", (req, res, next) => {
     common.log(req.body);
