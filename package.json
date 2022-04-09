@@ -2,7 +2,7 @@
   "name": "transfer_api",
   "version": "0.1.0",
   "dependencies": {
-    "moment": "2.24.0",
+    "moment": "2.29.2",
     "mongodb": "3.3.0",
     "restify": "8.4.0",
     "restify-router": "0.5.1",
